@@ -89,7 +89,11 @@ def work():
                         print("Active window: " + str(activeWindow))
 
                 for i in modes:  # Iterate over modes and use the first one that matches
-                    if ("process" in i and i["process"] in processes) or ("activeWindow" in i and i["activeWindow"].search(activeWindow)) or not ("process" in i or "activeWindow" in i):
+                    # fmt: off
+                    if ("process" in i and i["process"] in processes) or \
+                       ("activeWindow" in i and i["activeWindow"].search(activeWindow)) or not \
+                       ("process" in i or "activeWindow" in i):
+                        # fmt: on
                         # Either the process for this mode is running or the active window matches the regular expression. This is the mode we will set now.
                         if i["mode"] != mode:  # Do not set the mode again if we already have this one
                             if mode is not None:
