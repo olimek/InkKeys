@@ -36,6 +36,108 @@ from inkkeys import *
 
 
 # TODO : add more function
+
+class EmptyClass:
+    lightState = None  # Current state of the lights in my office. (Keeping track to know when to update the screen)
+    demoActive = False  # We have a demo button and this keeps track whether the demo mode is active, so we know when to update the screen
+    jogFunction = ""
+
+    def activate(self, device):
+        device.sendTextFor("title", "TITLE", inverted=True)  # Title
+      
+        device.sendIconFor(2, "icons/dot.png", centered=(not self.demoActive))  # Build program
+        device.assignKey(KeyCode.SW2_PRESS, [])
+        device.assignKey(KeyCode.SW2_RELEASE, [])
+        
+        device.sendIconFor(3, "icons/dot.png", centered=(not self.demoActive))
+        device.assignKey(KeyCode.SW3_PRESS, [])
+        device.assignKey(KeyCode.SW3_RELEASE, [])
+        
+        device.sendIconFor(4, "icons/bootstrap.png", centered=(not self.demoActive))
+        device.assignKey(KeyCode.SW4_PRESS, [])  # Not used, set to nothing.
+        device.assignKey(KeyCode.SW4_RELEASE, [])
+
+        device.sendIconFor(5, "icons/dot.png", centered=(not self.demoActive))
+        device.assignKey(KeyCode.SW6_PRESS, [])
+        device.assignKey(KeyCode.SW6_RELEASE, [])
+        
+        device.sendIconFor(6, "icons/bootstrap.png", centered=(not self.demoActive))
+        device.assignKey(KeyCode.SW7_PRESS, [])
+        device.assignKey(KeyCode.SW7_RELEASE, [])
+
+        device.sendIconFor(7, "icons/dot.png", centered=(not self.demoActive))
+        device.assignKey(KeyCode.SW7_PRESS, [])
+        device.assignKey(KeyCode.SW7_RELEASE, [])
+        
+        device.sendIconFor(8, "icons/bootstrap.png", centered=(not self.demoActive))
+        device.assignKey(KeyCode.SW7_PRESS, [])
+        device.assignKey(KeyCode.SW7_RELEASE, [])
+        
+        device.sendIconFor(9, "icons/dot.png", centered=(not self.demoActive))
+        device.assignKey(KeyCode.SW7_PRESS, [])
+        device.assignKey(KeyCode.SW7_RELEASE, [])
+
+
+        # This toggles the jog function and sets up key assignments and the label for the jog dial.
+        #  It calls "updateDiplay()" if update is not explicitly set to False (for example if you need to update more parts of the display before updating it.)
+
+        def toggleJogFunction(update=True):
+
+            if self.jogFunction == "wheel":
+                device.clearCallback(KeyCode.JOG)
+                device.sendTextFor(1, "Arrow Keys")
+                device.assignKey(
+                    KeyCode.JOG_CW,
+                    [event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_RIGHT)],
+                )
+                device.assignKey(
+                    KeyCode.JOG_CCW,
+                    [event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT)],
+                )
+                self.jogFunction = "arrow"
+                if update:
+                    device.updateDisplay()
+
+            else:
+                device.clearCallback(KeyCode.JOG)
+                device.sendTextFor(1, "Mouse Wheel")
+                device.assignKey(
+                    KeyCode.JOG_CW,
+                    [event(DeviceCode.MOUSE, MouseAxisCode.MOUSE_WHEEL, 1)],
+                )
+                device.assignKey(
+                    KeyCode.JOG_CCW,
+                    [event(DeviceCode.MOUSE, MouseAxisCode.MOUSE_WHEEL, -1)],
+                )
+                self.jogFunction = "wheel"
+                if update:
+                    device.updateDisplay()
+
+        # Button 1 / jog dial press
+        device.registerCallback(toggleJogFunction, KeyCode.JOG_PRESS)  # Call "toggleJogFunction" if the dial is pressed
+        device.assignKey(KeyCode.SW1_PRESS, [])  # We do not send a key stroke when the dial is pressed, instead we use the callback.
+        device.assignKey(KeyCode.SW1_RELEASE, [])  # We still need to overwrite the assignment to clear previously set assignments.
+        toggleJogFunction(False)  # We call toggleJogFunction to initially set the label and assignment
+        device.updateDisplay(True)  # Everything has been sent to the display. Time to refresh it.
+
+    def poll(self, device):
+        return False  # No polling in this example
+
+    def animate(self, device):
+        if self.demoActive:  # In demo mode, we animate the LEDs here
+
+            def rgbTupleToInt(rgb):
+                return (int(rgb[0] * 255) << 16) | (int(rgb[1] * 255) << 8) | int(rgb[2] * 255)
+
+            t = time.time()
+            leds = [rgbTupleToInt(hsv_to_rgb(t + i / device.nLeds, 1, 1)) for i in range(device.nLeds)]
+            device.setLeds(leds)
+        else:  # If not in demo mode, we call "fadeLeds" to create a fade animation for any color set anywhere in this mode
+            device.fadeLeds()
+
+    def deactivate(self, device):
+        pass  # Nothing to clean up in this example
+
 class ModeProgrammingVSC:
     lightState = None  # Current state of the lights in my office. (Keeping track to know when to update the screen)
     demoActive = False  # We have a demo button and this keeps track whether the demo mode is active, so we know when to update the screen
@@ -61,7 +163,9 @@ class ModeProgrammingVSC:
         )
         device.assignKey(KeyCode.SW2_RELEASE, [])
         device.sendIconFor(3, "icons/play.png", centered=(not self.demoActive))
-        device.assignKey(KeyCode.SW3_PRESS, [event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_F12)])
+        device.assignKey(KeyCode.SW3_PRESS, [event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT_CTRL, ActionCode.PRESS), 
+                                             event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_F10), 
+                                             event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT_CTRL, ActionCode.RELEASE)])
         device.assignKey(KeyCode.SW3_RELEASE, [])
 
         device.sendIconFor(5, "icons/dot.png", centered=(not self.demoActive))
@@ -84,7 +188,9 @@ class ModeProgrammingVSC:
         # -- Buttons 5 and 9 are shortcuts to applications ###
 
         device.sendIconFor(6, "icons/bug.png", centered=(not self.demoActive))
-        device.assignKey(KeyCode.SW3_PRESS, [event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_F11)])
+        device.assignKey(KeyCode.SW3_PRESS, [event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT_CTRL, ActionCode.PRESS), 
+                                             event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_F9), 
+                                             event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT_CTRL, ActionCode.RELEASE)])
         device.assignKey(KeyCode.SW5_RELEASE, [])
         device.sendIconFor(9, "icons/dot.png", centered=(not self.demoActive))
         device.assignKey(KeyCode.SW9_PRESS, [])
@@ -163,14 +269,9 @@ class ModeProgrammingSTM:
         device.sendIconFor(2, "icons/bootstrap.png", centered=(not self.demoActive))  # Build program
         device.assignKey(
             KeyCode.SW2_PRESS,
-            [
-                event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT_CTRL, ActionCode.PRESS),
+            [   event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT_CTRL, ActionCode.PRESS),
                 event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_B),
-                event(
-                    DeviceCode.KEYBOARD,
-                    KeyboardKeycode.KEY_LEFT_CTRL,
-                    ActionCode.RELEASE,
-                ),
+                event(DeviceCode.KEYBOARD, KeyboardKeycode.KEY_LEFT_CTRL,ActionCode.RELEASE,),
             ],
         )
         device.assignKey(KeyCode.SW2_RELEASE, [])

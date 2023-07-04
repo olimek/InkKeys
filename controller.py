@@ -41,7 +41,7 @@ modes = [  # {"mode": ModeOBS(), "process": "obs"}, \
     {"mode": ModeProgrammingVSC(), "activeWindow": re.compile("Visual Studio Code")},
     # {"mode": ModeGimp(), "activeWindow": re.compile("^gimp.*")}, \
     # {"mode": ModeFallback(mqtt)}, \
-    {"mode": ModeDefault()},
+    {"mode": EmptyClass()},
 ]
 
 ############################################################################################################
